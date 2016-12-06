@@ -125,11 +125,13 @@ namespace Blog.Controllers
         [ActionName("Delete")]
         public ActionResult DeleteConfirmed(int? id)
         {
+            // Check id id id valid
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            // connect to DB
             using (var database = new BlogDbContext())
             {
                 /// Get article from database
@@ -152,6 +154,69 @@ namespace Blog.Controllers
                 return RedirectToAction("Index");
             }
 
+        }
+
+        // GET: Article/Edit
+        public ActionResult Edit(int? id)
+        {
+            // Check id id id valid
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (var database = new BlogDbContext())
+            {
+                // Get article from the database
+                var article = database.Articles
+                    .Where(a => a.Id == id)
+                    .First();
+
+                // Check if article exists
+                if (article == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Create the view model
+                var model = new ArticleViewModel();
+                model.Id = article.Id;
+                model.Title = article.Title;
+                model.Content = article.Content;
+
+                // Pass the view model to view
+                return View(model);
+            }
+        } 
+
+        // POST: Article/Edit
+        [HttpPost]
+        public ActionResult Edit(ArticleViewModel model)
+        {
+            // Check if model state is valid
+            if (ModelState.IsValid)
+            {
+                using (var database = new BlogDbContext())
+                {
+                    // Get article from DB
+                    var article = database.Articles
+                        .FirstOrDefault(a=>a.Id == model.Id);
+
+                    // Set article priperties
+                    article.Title = model.Title;
+                    article.Content = model.Content;
+
+                    // Save article state in database
+                    database.Entry(article).State = EntityState.Modified;
+                    database.SaveChanges();
+
+                    // Redirect to the index page
+                    return RedirectToAction("Index");
+                }
+            }
+
+            // if model state id invalid, return the save view
+            return View(model);
         }
     }
 }
