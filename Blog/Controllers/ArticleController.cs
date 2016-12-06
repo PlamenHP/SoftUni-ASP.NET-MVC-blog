@@ -47,7 +47,7 @@ namespace Blog.Controllers
                     .Include(a => a.Author)
                     .First();
 
-                if (article == null )
+                if (article == null)
                 {
                     return HttpNotFound();
                 }
@@ -55,5 +55,43 @@ namespace Blog.Controllers
                 return View(article);
             }
         }
+
+        // GET: Article/Create
+        public ActionResult Create()
+        {
+            using (var database = new BlogDbContext())
+            {
+                return View();
+            }
+        }
+
+        // POST: Article/Create
+        [HttpPost]
+        public ActionResult Create(Article article)
+        {
+            if (ModelState.IsValid)
+            {
+                using (var database = new BlogDbContext())
+                {
+                    /// Get author id
+                    var authorId = database.Users
+                        .Where(u => u.UserName == this.User.Identity.Name)
+                        .First()
+                        .Id;
+
+                    // Set articles author
+                    article.AuthorId = authorId;
+
+                    // Save articles in DB
+                    database.Articles.Add(article);
+                    database.SaveChanges();
+
+                    return RedirectToAction("Index");
+                }
+            }
+
+            return View(article);
+        }
+
     }
 }
