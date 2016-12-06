@@ -11,12 +11,14 @@ namespace Blog.Controllers
 {
     public class ArticleController : Controller
     {
+        //
         // GET: Article
         public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
+        //
         // GET: Article/List
         public ActionResult List()
         {
@@ -31,6 +33,7 @@ namespace Blog.Controllers
             }
         }
 
+        //
         // GET: Article/Detail
         public ActionResult Details(int? id)
         {
@@ -56,7 +59,9 @@ namespace Blog.Controllers
             }
         }
 
+        //
         // GET: Article/Create
+        [Authorize]
         public ActionResult Create()
         {
             using (var database = new BlogDbContext())
@@ -65,8 +70,10 @@ namespace Blog.Controllers
             }
         }
 
+        //
         // POST: Article/Create
         [HttpPost]
+        [Authorize]
         public ActionResult Create(Article article)
         {
             if (ModelState.IsValid)
@@ -93,6 +100,7 @@ namespace Blog.Controllers
             return View(article);
         }
 
+        //
         // GET: Article/Delete
         public ActionResult Delete(int? id)
         {
@@ -109,6 +117,12 @@ namespace Blog.Controllers
                     .Include(a => a.Author)
                     .First();
 
+                // Validate user
+                if (!IsUserAuthorizedToEdit(article))
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                }
+
                 // Check if article exists
                 if (article == null)
                 {
@@ -120,6 +134,7 @@ namespace Blog.Controllers
             }
         }
 
+        //
         // POST: Article/Delete
         [HttpPost]
         [ActionName("Delete")]
@@ -156,6 +171,7 @@ namespace Blog.Controllers
 
         }
 
+        //
         // GET: Article/Edit
         public ActionResult Edit(int? id)
         {
@@ -171,6 +187,12 @@ namespace Blog.Controllers
                 var article = database.Articles
                     .Where(a => a.Id == id)
                     .First();
+
+                // validate user
+                if (!IsUserAuthorizedToEdit(article))
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                }
 
                 // Check if article exists
                 if (article == null)
@@ -189,6 +211,7 @@ namespace Blog.Controllers
             }
         } 
 
+        //
         // POST: Article/Edit
         [HttpPost]
         public ActionResult Edit(ArticleViewModel model)
@@ -217,6 +240,14 @@ namespace Blog.Controllers
 
             // if model state id invalid, return the save view
             return View(model);
+        }
+
+        private bool IsUserAuthorizedToEdit(Article article)
+        {
+            bool isAdmin = this.User.IsInRole("Admin");
+            bool isAuthor = article.IsAuthor(this.User.Identity.Name);
+
+            return isAdmin || isAuthor;
         }
     }
 }
