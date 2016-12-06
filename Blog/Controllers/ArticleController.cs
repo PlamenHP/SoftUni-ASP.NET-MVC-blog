@@ -122,30 +122,36 @@ namespace Blog.Controllers
 
         // POST: Article/Delete
         [HttpPost]
-        public ActionResult Delete(Article article)
+        [ActionName("Delete")]
+        public ActionResult DeleteConfirmed(int? id)
         {
-            if (ModelState.IsValid)
+            if (id == null)
             {
-                using (var database = new BlogDbContext())
-                {
-                    /// Get author id
-                    var authorId = database.Users
-                        .Where(u => u.UserName == this.User.Identity.Name)
-                        .First()
-                        .Id;
-
-                    // Set articles author
-                    article.AuthorId = authorId;
-
-                    // Save articles in DB
-                    database.Articles.Add(article);
-                    database.SaveChanges();
-
-                    return RedirectToAction("Index");
-                }
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            return View(article);
+            using (var database = new BlogDbContext())
+            {
+                /// Get article from database
+                var article = database.Articles
+                    .Where(a => a.Id == id)
+                    .Include(a => a.Author)
+                    .First();
+
+                // Check id the article exists
+                if (article == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Remove article from DB
+                database.Articles.Remove(article);
+                database.SaveChanges();
+
+                // redirect to index page
+                return RedirectToAction("Index");
+            }
+
         }
     }
 }
