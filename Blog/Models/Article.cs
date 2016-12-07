@@ -22,7 +22,7 @@ namespace Blog.Models
         [ForeignKey("Author")]
         public string AuthorId { get; set; }
 
-        public virtual ApplicationUser Author { get; set; }
+        public virtual BlogUser Author { get; set; }
 
         public bool IsAuthor(string name)
         {

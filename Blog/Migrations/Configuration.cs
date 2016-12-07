@@ -56,7 +56,7 @@ namespace Blog.Migrations
         private void CreateUser(BlogDbContext context, string email, string fullName, string password)
         {
             // Create user manager
-            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(context));
+            var userManager = new UserManager<BlogUser>(new UserStore<BlogUser>(context));
 
             // Set user manager password validator
             userManager.PasswordValidator = new PasswordValidator
@@ -69,7 +69,7 @@ namespace Blog.Migrations
             };
 
             // Create user object
-            var admin = new ApplicationUser
+            var admin = new BlogUser
             {
                 UserName = email,
                 FullName = fullName,
@@ -88,7 +88,7 @@ namespace Blog.Migrations
 
         private void SetRoleToUser(BlogDbContext context , string email, string role)
         {
-            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(context));
+            var userManager = new UserManager<BlogUser>(new UserStore<BlogUser>(context));
 
             var user = context.Users.Where(u=>u.Email == email).First();
 

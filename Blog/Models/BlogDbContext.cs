@@ -6,7 +6,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace Blog.Models
 {
-    public class BlogDbContext : IdentityDbContext<ApplicationUser>
+    public class BlogDbContext : IdentityDbContext<BlogUser>
     {
         public BlogDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
