@@ -12,6 +12,7 @@ using System.Data.Entity;
 
 namespace Blog.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     public class UserController : Controller
     {
         // GET: User
@@ -53,7 +54,6 @@ namespace Blog.Controllers.Admin
 
 
         // GET: User/Edit
-        [Authorize]
         public ActionResult Edit(string id)
         {
             //validate id
@@ -125,6 +125,60 @@ namespace Blog.Controllers.Admin
             return View(viewModel);
         }
 
+        // GET: User/Delete
+        public ActionResult Delete(string id)
+        {
+            if(id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (var database = new BlogDbContext())
+            {
+                // get user from database
+                var user = database.Users.FirstOrDefault(u=>u.Id == id);
+
+                // Check if user exists
+                if (user == null)
+                {
+                    return HttpNotFound();
+                }
+                return View(user);
+            }
+        }
+
+        // POST: User/Delete
+        [HttpPost]
+        [ActionName("Delete")]
+        public ActionResult DeleteConfirmed(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            using (var database  = new BlogDbContext())
+            {
+                // Get user from database
+                var user = database.Users.FirstOrDefault(u=>u.Id == id);
+
+                // Get user articles from databse
+                var articles = database.Articles.Where(a=>a.Author.Id == id);
+
+                // Delete user articles
+                foreach (var article in articles)
+                {
+                    database.Articles.Remove(article);
+                }
+
+                // Delete user and save changes
+                database.Users.Remove(user);
+                database.SaveChanges();
+
+                return RedirectToAction("List");
+            }
+        }
+
         private void SetUserRoles(EditUserViewModel viewModel, BlogUser user, BlogDbContext database)
         {
             var userManager = HttpContext.GetOwinContext()
@@ -172,7 +226,5 @@ namespace Blog.Controllers.Admin
             // Return a list with all roles
             return userRoles;
         }
-
-
     }
 }
