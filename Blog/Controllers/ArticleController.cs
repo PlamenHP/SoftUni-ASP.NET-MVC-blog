@@ -92,6 +92,8 @@ namespace Blog.Controllers
                     // Set articles author
                     var article = new Article(authorId,model.Title,model.Content,model.CategoryId);
 
+                    this.SetArticleTags(article, model, database);
+
                     // Save articles in DB
                     database.Articles.Add(article);
                     database.SaveChanges();
@@ -101,6 +103,38 @@ namespace Blog.Controllers
             }
 
             return View(model);
+        }
+
+        private void SetArticleTags(Article article, ArticleViewModel model, BlogDbContext db)
+        {
+            // Split tags
+            var tagsStrings = model.Tags
+                .Split(new char[] {',',' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t=>t.ToLower())
+                .Distinct();
+
+            // Clear current article tags
+            article.Tags.Clear();
+
+            // Set new article tags
+            foreach (var tagString in tagsStrings)
+            {
+                // Get tag from db by its name
+                Tag tag = db.Tags.FirstOrDefault(t => t.Name == tagString);
+
+                // If the tag is null, crete new tag
+                if (tag == null)
+                {
+                    tag = new Tag()
+                    {
+                        Name = tagString
+                    };
+                    db.Tags.Add(tag);
+                }
+
+                // Add tag to article tags
+                article.Tags.Add(tag);
+            }
         }
 
         //
@@ -119,6 +153,7 @@ namespace Blog.Controllers
                     .Include(a => a.Category)
                     .Where(a => a.Id == id)
                     .Include(a => a.Author)
+                    .Include(a=>a.Category)
                     .First();
 
                 // Validate user
@@ -126,6 +161,8 @@ namespace Blog.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
                 }
+
+                ViewBag.TagStrings = string.Join(", ", article.Tags.Select(t => t.Name));
 
                 // Check if article exists
                 if (article == null)
@@ -213,6 +250,8 @@ namespace Blog.Controllers
                 model.Categories = database.Categories.OrderBy(c => c.Name).ToList();
                 model.CategoryId = article.CategoryId;
 
+                model.Tags = string.Join(", ", article.Tags.Select(t => t.Name));
+
                 // Pass the view model to view
                 return View(model);
             }
@@ -236,6 +275,7 @@ namespace Blog.Controllers
                     article.Title = model.Title;
                     article.Content = model.Content;
                     article.CategoryId = model.CategoryId;
+                    this.SetArticleTags(article, model, database);
 
                     // Save article state in database
                     database.Entry(article).State = EntityState.Modified;

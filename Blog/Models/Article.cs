@@ -9,8 +9,11 @@ namespace Blog.Models
 {
     public class Article
     {
+        private ICollection<Tag> tags;
+
         public Article()
         {
+            this.tags = new HashSet<Tag>();
         }
 
         public Article(string authorId, string title, string content, int categoryId)
@@ -19,6 +22,7 @@ namespace Blog.Models
             this.Title = title;
             this.Content = content;
             this.CategoryId = categoryId;
+            this.tags = new HashSet<Tag>();
         }
 
         [Key]
@@ -40,6 +44,8 @@ namespace Blog.Models
         public int CategoryId { get; set; }
 
         public virtual Category Category { get; set; }
+
+        public virtual ICollection<Tag> Tags { get; set; }
 
         public bool IsAuthor(string name)
         {
