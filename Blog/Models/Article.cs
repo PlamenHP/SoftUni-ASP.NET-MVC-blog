@@ -45,7 +45,11 @@ namespace Blog.Models
 
         public virtual Category Category { get; set; }
 
-        public virtual ICollection<Tag> Tags { get; set; }
+        public virtual ICollection<Tag> Tags
+        {
+            get { return this.tags; }
+            set { this.tags = value; }
+        }
 
         public bool IsAuthor(string name)
         {
