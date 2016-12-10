@@ -66,7 +66,9 @@ namespace Blog.Controllers
         {
             using (var database = new BlogDbContext())
             {
-                return View();
+                var model = new ArticleViewModel();
+                model.Categories = database.Categories.OrderBy(c => c.Name).ToList();
+                return View(model);
             }
         }
 
@@ -74,7 +76,8 @@ namespace Blog.Controllers
         // POST: Article/Create
         [HttpPost]
         [Authorize]
-        public ActionResult Create(Article article)
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(ArticleViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -87,7 +90,7 @@ namespace Blog.Controllers
                         .Id;
 
                     // Set articles author
-                    article.AuthorId = authorId;
+                    var article = new Article(authorId,model.Title,model.Content,model.CategoryId);
 
                     // Save articles in DB
                     database.Articles.Add(article);
@@ -97,7 +100,7 @@ namespace Blog.Controllers
                 }
             }
 
-            return View(article);
+            return View(model);
         }
 
         //
@@ -113,6 +116,7 @@ namespace Blog.Controllers
             {
                 // Get the article from datebase
                 var article = database.Articles
+                    .Include(a => a.Category)
                     .Where(a => a.Id == id)
                     .Include(a => a.Author)
                     .First();
@@ -129,7 +133,7 @@ namespace Blog.Controllers
                     return HttpNotFound();
                 }
 
-                // Pass article to view
+                // Pass model to view
                 return View(article);
             }
         }
@@ -138,6 +142,7 @@ namespace Blog.Controllers
         // POST: Article/Delete
         [HttpPost]
         [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int? id)
         {
             // Check id id id valid
@@ -205,6 +210,8 @@ namespace Blog.Controllers
                 model.Id = article.Id;
                 model.Title = article.Title;
                 model.Content = article.Content;
+                model.Categories = database.Categories.OrderBy(c => c.Name).ToList();
+                model.CategoryId = article.CategoryId;
 
                 // Pass the view model to view
                 return View(model);
@@ -214,6 +221,7 @@ namespace Blog.Controllers
         //
         // POST: Article/Edit
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(ArticleViewModel model)
         {
             // Check if model state is valid
@@ -222,12 +230,12 @@ namespace Blog.Controllers
                 using (var database = new BlogDbContext())
                 {
                     // Get article from DB
-                    var article = database.Articles
-                        .FirstOrDefault(a=>a.Id == model.Id);
+                    var article = database.Articles.FirstOrDefault(a=>a.Id == model.Id);
 
                     // Set article priperties
                     article.Title = model.Title;
                     article.Content = model.Content;
+                    article.CategoryId = model.CategoryId;
 
                     // Save article state in database
                     database.Entry(article).State = EntityState.Modified;

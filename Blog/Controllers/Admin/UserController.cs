@@ -86,6 +86,7 @@ namespace Blog.Controllers.Admin
 
         // POST: User/Edit
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(string id, EditUserViewModel viewModel)
         {
             // Check if model is valid
@@ -150,6 +151,7 @@ namespace Blog.Controllers.Admin
         // POST: User/Delete
         [HttpPost]
         [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(string id)
         {
             if (id == null)

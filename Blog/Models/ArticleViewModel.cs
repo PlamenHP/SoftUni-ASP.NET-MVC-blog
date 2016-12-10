@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Blog.Models
 {
@@ -14,5 +16,11 @@ namespace Blog.Models
         public string Content { get; set; }
 
         public string AuthorId { get; set; }
+
+        [Required]
+        [Display(Name = "Category")]
+        public int CategoryId { get; set; }
+
+        public ICollection<Category> Categories { get; set; }
     }
 }
