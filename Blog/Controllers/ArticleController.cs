@@ -27,6 +27,7 @@ namespace Blog.Controllers
                 //Get articles from database
                 var articles = database.Articles
                     .Include(a => a.Author)
+                    .Include(a=>a.Tags)
                     .ToList();
 
                 return View(articles);
@@ -48,6 +49,7 @@ namespace Blog.Controllers
                 var article = database.Articles
                     .Where(a => a.Id == id)
                     .Include(a => a.Author)
+                    .Include(a=>a.Tags)
                     .First();
 
                 if (article == null)
